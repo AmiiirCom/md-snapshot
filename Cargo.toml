@@ -1,0 +1,13 @@
+[package]
+name = "md-snapshot"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+eframe = "0.27"
+rfd = "0.14"          # پنجره‌های بومی انتخاب فایل و پوشه
+walkdir = "2.5"        # پیمایش استاندارد دایرکتوری بدون تعقیب symlink
+sha2 = "0.10"
+
+[build-dependencies]
+winres = "0.1"

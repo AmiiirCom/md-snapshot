@@ -1,0 +1,96 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: # امکان اجرای دستی از داخل پنل Actions
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - os: windows-latest
+            artifact_name: md-snapshot.exe
+            asset_name: md-snapshot-windows-x86_64
+            archive: zip
+
+          # Linux (Ubuntu)
+          - os: ubuntu-latest
+            artifact_name: md-snapshot
+            asset_name: md-snapshot-linux-x86_64
+            archive: tar.gz
+
+          # macOS (Apple Silicon / arm64)
+          - os: macos-latest
+            artifact_name: md-snapshot
+            asset_name: md-snapshot-macos-arm64
+            archive: tar.gz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # نصب وابستگی‌های لازم برای Linux (جهت eframe و rfd)
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libglib2.0-dev libgtk-3-dev libx11-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev
+
+      - name: Build release binary
+        run: cargo build --release
+
+      # بسته‌بندی فایل خروجی برای ویندوز (Zip)
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path target/release/${{ matrix.artifact_name }} -DestinationPath ${{ matrix.asset_name }}.zip
+
+      # بسته‌بندی فایل خروجی برای لینوکس و مک (tar.gz)
+      - name: Package Unix
+        if: runner.os != 'Windows'
+        run: |
+          tar -czf ${{ matrix.asset_name }}.tar.gz -C target/release ${{ matrix.artifact_name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}.${{ matrix.archive }}
+
+  create-release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create Release and Upload Files
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -31,5 +31,9 @@ pub fn apply_modern_theme(ctx: &egui::Context) {
     style.spacing.item_spacing = Vec2::new(8.0, 8.0);
     style.spacing.button_padding = Vec2::new(10.0, 6.0);
     style.spacing.window_margin = Margin::same(12.0);
+
+    // غیرفعال کردن انتخاب متن روی لیبل‌ها و جلوگیری از تغییر شکل پوینتر به I-Beam
+    style.interaction.selectable_labels = false;
+
     ctx.set_style(style);
 }

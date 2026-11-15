@@ -1689,6 +1689,7 @@ dependencies = [
  "eframe",
  "egui",
  "ignore",
+ "image",
  "rfd",
  "serde",
  "serde_yaml",

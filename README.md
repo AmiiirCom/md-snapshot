@@ -1,120 +1,88 @@
-# 📷 MD Snapshot
+# 📦 md-snapshot
 
-[![Rust](https://img.shields.io/badge/Language-Rust-orange.svg?style=flat-square&logo=rust)](https://www.rust-lang.org/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg?style=flat-square)](https://github.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+> **Fast, token-optimized desktop app to pack codebases and docs into clean LLM context.**  
+> Built with high-performance **Rust**, **egui**, and **eframe**.
 
-**MD Snapshot** is a fast, token-optimized, cross-platform desktop application built with **Rust** and **eframe/egui**. It converts any software project directory into a compact, clean Markdown prompt ready for Large Language Models (**ChatGPT**, **Claude**, **DeepSeek**, **Gemini**).
-
----
-
-## ✨ Features
-
-- **⚡ Fast & Responsive**: File scanning, binary detection, and formatting are processed on background worker threads with cancellation support. The UI never freezes.
-- **📄 Custom Instruction Docs**: Attach external context files (e.g., `skill.md`, `agent.md`, system prompts, coding guidelines) to be injected at the very top of your prompt.
-- **🌲 Compact Visual Tree**: Generates an ASCII file tree of included files.
-- **🛡️ Safe & Clean**:
-  - **No Path Leaks**: All paths are sanitized to relative paths; user home/absolute directories are never exposed.
-  - **Adaptive Code Fences**: Dynamically adjusts backtick lengths (` ```` `, ` ````` `) to prevent nested code blocks from breaking Markdown syntax.
-  - **Binary Filtering**: Automatic UTF-8 validation and null-byte heuristics to filter out binary/compiled assets.
-  - **Symlink Protection**: Does not traverse symlinks to avoid directory loops and out-of-root leaks.
-- **🎯 Token-Optimized**:
-  - **SHA-256 Deduplication**: Identifies identical files and replaces redundant code with references.
-  - **Smart Trimming**: Removes trailing empty lines while strictly preserving internal code indentation and spacing.
-  - **No Silent Omissions**: Files skipped due to size limits are explicitly documented in an `Omitted / Skipped Files` section.
-- **📊 Real-time Stats**: Live preview, character counter, file metrics, and token estimation (~4 chars/token).
-- **🪟 Windows Integration**: Native Windows `.exe` embedding with auto-generated embedded resource icon and no console popups (`#![windows_subsystem = "windows"]`).
+[![Release](https://img.shields.io/github/v/release/AmiiirCom/md-snapshot?style=flat-square&color=89b4fa)](https://github.com/AmiiirCom/md-snapshot/releases)
+[![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache--2.0-blue?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-informational?style=flat-square)](https://github.com/AmiiirCom/md-snapshot/releases)
 
 ---
 
-## 📋 Markdown Output Structure
+## 🌟 Overview
 
-The output Markdown document follows a structured layout optimized for LLM comprehension:
+**md-snapshot** scans your software project directory and transforms it into a clean, compact, and structured prompt ready for Large Language Models (**Claude 3.5**, **ChatGPT / GPT-4o**, **DeepSeek**, **Gemini**).
 
-```markdown
-# Project: <Project Name>
-
-## Context & Instructions
-### skill.md
-````markdown
-<Content of attached prompt or role document>
-````
-
-## Project Tree
-```text
-├── src
-│   ├── main.rs
-│   └── app.rs
-└── Cargo.toml
-```
-
-## Source Files
-### src/main.rs
-````rust
-<File content with internal formatting preserved>
-````
-
-### src/duplicate.rs
-*(Identical content to `src/main.rs`)*
-
-## Omitted / Skipped Files
-- `assets/heavy_payload.json`: File exceeds size limit (512 KB)
-```
+Unlike bloated Electron-based alternatives, **md-snapshot** is a native, ultra-lightweight Rust desktop application that launches instantly, handles massive monorepos with ease, and never freezes your UI.
 
 ---
 
-## 🚀 Download & Installation
+## 🚀 Key Features
 
-### Pre-built Binaries
-Download the latest pre-compiled binaries for **Windows**, **Linux**, and **macOS** from the [Releases](https://github.com/) page.
+### 📑 Multi-Format LLM Exports
+Export your codebase in the format that best suits your target AI model:
+- **Markdown (`.md`)** *(Default)*: Clean markdown structure with dynamic code fences (` ``` `, ` ```` `, ` ````` `) preventing nested block syntax breakage.
+- **XML (`.xml`)**: Structured tags (`<file path="...">`, `<instructions>`, `<file_tree>`) optimized for **Anthropic Claude** and modern coding agents.
+- **YAML (`.yaml`)**: Clean hierarchical structure using literal block scalars.
 
-### Building from Source
+### 🌿 Interactive File & Directory Tree (`Custom` Preset)
+- **Tri-State Checkboxes (`☑ / ☐ / ▣`)**: Easily check or uncheck individual files or entire folders. Unchecking a directory completely omits all of its nested files.
+- **Hidden & Config Files**: Select sensitive or hidden files like `.env`, `.gitignore`, `.prettierrc`, `Dockerfile`, or folders like `.github` and `.vscode`.
+- **Live Search & Filter**: Quickly find files in large repositories with instant substring search.
+- **Quick Controls**: 1-click `Select All`, `Deselect All`, `Expand All`, and `Collapse All`.
 
-#### Prerequisites
-Install the [Rust toolchain](https://rustup.rs/) (edition 2021 or later).
+### ⚡ 1-Click Language & Stack Presets
+Switch contexts instantly without manually retyping extensions:
+- 🦀 **Rust**: `.rs`, `.toml`, `.md`
+- ⚡ **Web / TypeScript**: `.ts`, `.tsx`, `.js`, `.jsx`, `.json`, `.html`, `.css`, `.md`
+- 🐍 **Python**: `.py`, `.toml`, `.yaml`, `.yml`, `.sql`, `.md`
+- 🐹 **Go**: `.go`, `.mod`, `.sum`, `.md`
+- 🌐 **Fullstack**: Combined modern multi-language stack.
+- 🛠 **Custom**: Unlocks the full interactive file tree for surgical file selection.
 
-#### Linux Dependencies (Debian / Ubuntu)
-For Linux desktop environments, install the required GTK and graphics development packages:
-```bash
-sudo apt update
-sudo apt install -y pkg-config libglib2.0-dev libgtk-3-dev libx11-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev
-```
+### 🏷️ Smart Tag / Chip Input System
+- Visual tags for allowed extensions and ignored folders with 1-click removal (`✕`).
+- Quick input box with `+ Add` button or <kbd>Enter</kbd> key.
+- Deterministic sorting to eliminate jumping or layout shifts.
 
-#### Compilation
-Clone the repository and compile the optimized release binary:
+### 🔤 Live Token Metrics & Context Indicators
+- **Real-Time Token Estimation**: Instant token calculation (~4 chars/token).
+- **Context Window Usage**: Live visual gauges showing percentage of context filled for **GPT-4o (128k)** and **Claude 3.5 Sonnet (200k)**.
 
-```bash
-git clone https://github.com/yourusername/md-snapshot.git
-cd md-snapshot
+### 🛡️ Safe, Clean & Token-Optimized
+- **SHA-256 Deduplication**: Identifies identical files and replaces duplicate content with concise pointers.
+- **Binary & Symlink Protection**: UTF-8 validation and null-byte heuristics prevent binary bloat; protects against circular symlinks.
+- **Path Sanitization**: Strips absolute system paths, protecting local usernames and directory structures.
+- **Strip Comments (Optional)**: Strip line comments (`//`, `#`) to reduce token consumption by 20–30%.
+- **Optional `.gitignore` Support**: Inherit Git ignore rules with a single toggle (OFF by default).
+- **Omitted Files Log**: Explicitly reports any skipped or oversized files.
 
-# Build for release
-cargo build --release
-```
-
-The resulting binary will be available in:
-- **Windows**: `target/release/md-snapshot.exe` *(embedded with the MDS application icon)*
-- **Linux / macOS**: `target/release/md-snapshot`
-
----
-
-## 🛠️ Configuration & Defaults
-
-| Setting | Default Value | Description |
-| :--- | :--- | :--- |
-| **Allowed Extensions** | `rs, toml, md, json, yaml, yml, py, js, ts, tsx, jsx, html, css, go, java, c, h, cpp, hpp, sh, sql` | Configurable whitelist for code files. |
-| **Ignored Directories** | `.git, target, node_modules, vendor, dist, build, .idea, .vscode, __pycache__, .next` | Skipped during project traversal. |
-| **Per-File Size Limit** | `512 KB` | Files larger than this threshold are skipped and logged. |
-| **Total Output Limit** | `10 MB` | Hard ceiling for total Markdown output size. |
-| **Deduplication** | Enabled | SHA-256 matching avoids repeating duplicate file bodies. |
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/md-snapshot/issues).
+### 💻 Modern Desktop UX
+- **Drag & Drop**: Drop project folders or external instruction docs (`skill.md`, `agent.md`) straight into the window.
+- **Export Actions**: 1-click **Copy to Clipboard** with visual toast confirmation, or **Save As...** directly to disk.
+- **Native Look**: Built-in modern dark theme (Linear/Catppuccin inspired) with smooth high-DPI scaling.
 
 ---
 
-## 📄 License
+## 📥 Download & Installation
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+Pre-compiled release binaries are automatically built for Windows, Linux, and macOS:
+
+👉 **[Download Latest Release](https://github.com/AmiiirCom/md-snapshot/releases/latest)**
+
+| OS | Format | Architecture |
+|---|---|---|
+| **Windows** | `.zip` (Standalone `.exe`) | x86_64 |
+| **Linux (Ubuntu/Debian)** | `.tar.gz` | x86_64 |
+| **macOS** | `.tar.gz` | Apple Silicon (arm64) |
+
+---
+
+## 🛠️ Building from Source
+
+### Prerequisites
+- [Rust & Cargo](https://rustup.rs/) (1.75+ recommended)
+- **Windows**: [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (`link.exe`)
+- **Linux**: Standard development libraries:
+  ```bash
+  sudo apt update && sudo apt install -y pkg-config libglib2.0-dev libgtk-3-dev libx11-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev
